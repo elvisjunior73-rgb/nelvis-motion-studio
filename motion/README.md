@@ -23,7 +23,7 @@ Le dépôt est public. Pour une production confidentielle, exécutez le pipeline
 | Kdenlive | Ouvrir le projet OTIO. Le moteur MLT rend aussi la playlist et ses quatre plans dans Actions. |
 | Shotcut | Ouvrir la playlist MLT en tant que clip ou importer les quatre plans. |
 | Olive | Ouvrir le projet OTIO avec une version compilée avec OpenTimelineIO. Ouvrez Olive depuis le dossier de montage pour que les chemins relatifs désignent les quatre plans. Si nécessaire, reliez les médias à ce dossier. |
-| Whisper | Transcription locale facultative d’un WAV, avec SRT et ASS. Le test VOLT utilise une voix française de synthèse eSpeak NG. |
+| Whisper | Transcription locale facultative d’un WAV, avec SRT et ASS. Le test VOLT utilise une voix française eSpeak NG. Le sous-titrage incrusté a été calé sur le texte de la voix. La transcription automatique de Whisper reste disponible dans `whisper-brut/`. |
 | Subtitle Edit | SeConv convertit le SRT en VTT quand le binaire de la version épinglée est disponible. |
 | AutoSub | La variante locale de ThXrimson, basée sur Whisper, transcrit le WAV en SRT dans le dossier `autosub/` des résultats. `python autosub_import.py source.wav dossier-sortie` permet de la lancer séparément. |
 | Remotion | Rend le carton final VOLT dans les deux formats et le fournit à FFmpeg. |

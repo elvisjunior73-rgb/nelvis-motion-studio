@@ -21,6 +21,10 @@ if [[ ! -s "$captions" && -s "${brief%.json}.srt" ]]; then captions="${brief%.js
 if [[ "$brief" == "$PWD/examples/volt.json" && "$variant" == full ]]; then
   voice="$output/VOLT-voix.wav"
   espeak-ng -v fr-fr -s 154 -w "$voice" 'Prends ton élan. Découvre Volt Rift. À toi la rue.'
+  captions="$PWD/examples/volt-voix.ass"
+  mkdir -p "$output/whisper-brut"
+  whisper "$voice" --model tiny --language fr --fp16 False --output_format srt \
+    --output_dir "$output/whisper-brut"
 fi
 
 if [[ "$variant" == full ]]; then
@@ -40,7 +44,11 @@ if [[ "$variant" == full ]]; then
     fi
   fi
   if [[ -s "$voice" ]]; then
-    python autosub_import.py "$voice" "$output/autosub"
+    if [[ "$brief" == "$PWD/examples/volt.json" ]]; then
+      python autosub_import.py "$voice" "$output/autosub" --language fr
+    else
+      python autosub_import.py "$voice" "$output/autosub"
+    fi
   fi
   cp assets/{VOLT.ora,VOLT-krita.png,VOLT_artwork.xcf} "$output/"
   if [[ -s assets/detail-natron.png ]]; then cp assets/detail-natron.png "$output/"; fi
@@ -67,6 +75,12 @@ for size in 9:16 16:9; do
   fi
   target="$output/NELVIS-$suffix.mp4"
   python render.py "$brief" --format "$size" -o "$target" "${args[@]}"
+  if [[ -s "$captions" ]]; then
+    cp "$captions" "$output/NELVIS-$suffix.${captions##*.}"
+    if [[ "$captions" == *.ass && -s "${captions%.ass}.srt" ]]; then
+      cp "${captions%.ass}.srt" "$output/NELVIS-$suffix.srt"
+    fi
+  fi
   python probe.py "$target" "$width" "$height" | tee "$output/NELVIS-$suffix-qc.json"
   if [[ -s "$output/NELVIS-$suffix.srt" && -n "${NELVIS_SECONV:-}" ]]; then
     "$NELVIS_SECONV" "$output/NELVIS-$suffix.srt" webvtt \

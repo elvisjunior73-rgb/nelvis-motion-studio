@@ -51,7 +51,7 @@ jobs:
                     fonts-liberation xvfb xauth libgl1-mesa-dri libopengl0 libxcb-cursor0)
           if [[ "$NELVIS_VARIANT" == full ]]; then
             packages+=(gimp python3-gi gir1.2-gimp-3.0 gir1.2-gtk-3.0 krita dbus-x11 espeak-ng
-                       libnss3 libnspr4 libcups2t64 libdrm2 libx11-xcb1 libpango-1.0-0
+                       libglu1-mesa libcrypt1 libsm6 libice6 libnss3 libnspr4 libcups2t64 libdrm2 libx11-xcb1 libpango-1.0-0
                        libatk1.0-0t64 libatk-bridge2.0-0t64
                        libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2t64)
           fi
@@ -92,6 +92,12 @@ jobs:
           tar -xJf "$tools/natron.tar.xz" -C "$tools/natron"
           natron=$(find "$tools/natron" -maxdepth 3 -type f -name NatronRenderer -not -path '*/bin/*' -print -quit)
           test -x "$natron"
+          natron_root=$(dirname "$natron")
+          missing=$(LD_LIBRARY_PATH="$natron_root/lib" ldd "$natron_root/bin/NatronRenderer" | grep 'not found' || true)
+          if [[ -n "$missing" ]]; then
+            echo "$missing" >&2
+            exit 1
+          fi
           echo "NELVIS_NATRON=$natron" >> "$GITHUB_ENV"
           if curl -fLsS --retry 2 --retry-all-errors --max-time 90 \
             'https://github.com/SubtitleEdit/subtitleedit/releases/download/v5.4.0/SeConv-Linux-x64.tar.gz?download=1' \
