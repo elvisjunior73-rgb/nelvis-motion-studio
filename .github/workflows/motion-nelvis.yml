@@ -71,6 +71,7 @@ jobs:
           if [[ "$NELVIS_VARIANT" == full ]]; then
             pip install --index-url https://download.pytorch.org/whl/cpu 'torch==2.6.0'
             pip install 'openai-whisper==20250625'
+            pip install 'git+https://github.com/ThXrimson/autosub.git@cf387f422389fd382dc0daba5cf9ced98f2c95aa'
           fi
           echo "$RUNNER_TEMP/motion-venv/bin" >> "$GITHUB_PATH"
       - name: Installer Natron, Subtitle Edit et Remotion
@@ -88,7 +89,7 @@ jobs:
           test -x "$natron"
           echo "NELVIS_NATRON=$natron" >> "$GITHUB_ENV"
           if curl -fLsS --retry 2 --retry-all-errors --max-time 90 \
-            https://github.com/SubtitleEdit/subtitleedit/releases/download/v5.4.0/SeConv-Linux-x64.tar.gz \
+            'https://github.com/SubtitleEdit/subtitleedit/releases/download/v5.4.0/SeConv-Linux-x64.tar.gz?download=1' \
             -o "$tools/seconv.tar.gz"; then
             tar -xzf "$tools/seconv.tar.gz" -C "$tools/seconv"
             seconv=$(find "$tools/seconv" -type f -iname seconv -print -quit)

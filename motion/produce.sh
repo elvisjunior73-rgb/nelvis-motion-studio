@@ -39,6 +39,9 @@ if [[ "$variant" == full ]]; then
       cp assets/detail-natron.png assets/detail.png
     fi
   fi
+  if [[ -s "$voice" ]]; then
+    python autosub_import.py "$voice" "$output/autosub"
+  fi
   cp assets/{VOLT.ora,VOLT-krita.png,VOLT_artwork.xcf} "$output/"
   if [[ -s assets/detail-natron.png ]]; then cp assets/detail-natron.png "$output/"; fi
 fi

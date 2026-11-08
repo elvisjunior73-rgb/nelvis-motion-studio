@@ -1,21 +1,24 @@
-"""Run an explicitly selected Auto-Sub CLI and return its generated SRT."""
+"""Transcribe a narration to SRT with the pinned Whisper-based AutoSub CLI."""
 import argparse
+import os
 from pathlib import Path
 import subprocess
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("media", type=Path)
-parser.add_argument("output", type=Path)
-parser.add_argument("--language", default="fr")
-parser.add_argument("--binary", default="autosub")
+parser.add_argument("output_dir", type=Path)
+parser.add_argument("--language", default="auto")
+parser.add_argument("--model", default="tiny")
 options = parser.parse_args()
-if options.output.suffix.lower() != ".srt":
-    parser.error("La sortie doit porter l’extension .srt.")
-options.output.parent.mkdir(parents=True, exist_ok=True)
-subprocess.run(
-    [options.binary, "-S", options.language, "-D", options.language, "-F", "srt",
-     "-o", str(options.output.resolve()), str(options.media.resolve())],
-    check=True,
-)
-if not options.output.is_file() or not options.output.stat().st_size:
-    raise RuntimeError("Auto-Sub n’a pas produit de fichier SRT.")
+options.output_dir.mkdir(parents=True, exist_ok=True)
+cache = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "whisper"
+subprocess.run([
+    "autosub", "--cpu", "--overwrite", "--model", options.model,
+    "--language", options.language, "--output-dir", str(options.output_dir.resolve()),
+    "--whisper-root", str(cache),
+    str(options.media.resolve()),
+], check=True)
+generated = options.output_dir / f"{options.media.stem}.srt"
+if not generated.is_file() or not generated.stat().st_size:
+    raise RuntimeError("AutoSub n’a pas produit de fichier SRT.")
+print(generated)

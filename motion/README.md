@@ -22,10 +22,10 @@ Le dépôt est public. Pour une production confidentielle, exécutez le pipeline
 | GIMP / Krita | GIMP écrit un XCF à calques. Krita ouvre le projet OpenRaster et exporte le PNG. |
 | Kdenlive | Ouvrir le projet OTIO. Le moteur MLT rend aussi la playlist et ses quatre plans dans Actions. |
 | Shotcut | Ouvrir la playlist MLT en tant que clip ou importer les quatre plans. |
-| Olive | Ouvrir le projet OTIO avec une version compilée avec OpenTimelineIO. Pour préserver les chemins, gardez les quatre plans dans le dossier du projet et reliez-les si votre version le demande. |
+| Olive | Ouvrir le projet OTIO avec une version compilée avec OpenTimelineIO. Ouvrez Olive depuis le dossier de montage pour que les chemins relatifs désignent les quatre plans. Si nécessaire, reliez les médias à ce dossier. |
 | Whisper | Transcription locale facultative d’un WAV, avec SRT et ASS. Le test VOLT utilise une voix française de synthèse eSpeak NG. |
 | Subtitle Edit | SeConv convertit le SRT en VTT quand le binaire de la version épinglée est disponible. |
-| Auto-Sub | `python autosub_import.py source.wav brief.srt` lance un Auto-Sub compatible déjà installé. Le SRT est ensuite importé par le moteur. Selon la distribution d’Auto-Sub, le moteur de reconnaissance peut utiliser un service externe. |
+| AutoSub | La variante locale de ThXrimson, basée sur Whisper, transcrit le WAV en SRT dans le dossier `autosub/` des résultats. `python autosub_import.py source.wav dossier-sortie` permet de la lancer séparément. |
 | Remotion | Rend le carton final VOLT dans les deux formats et le fournit à FFmpeg. |
 | FFmpeg / FFprobe | Export et contrôle des deux MP4, à 30 i/s pendant 12 secondes, avec une piste AAC. |
 
