@@ -50,10 +50,15 @@ jobs:
           packages=(git curl ca-certificates xz-utils python3 python3-venv blender inkscape melt ffmpeg
                     fonts-liberation xvfb xauth libgl1-mesa-dri libopengl0 libxcb-cursor0)
           if [[ "$NELVIS_VARIANT" == full ]]; then
-            packages+=(gimp krita espeak-ng libnss3 libatk1.0-0t64 libatk-bridge2.0-0t64
+            packages+=(gimp python3-gi gir1.2-gimp-3.0 gir1.2-gtk-3.0 krita dbus-x11 espeak-ng
+                       libnss3 libnspr4 libcups2t64 libdrm2 libx11-xcb1 libpango-1.0-0
+                       libatk1.0-0t64 libatk-bridge2.0-0t64
                        libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2t64)
           fi
           apt-get install -y --no-install-recommends "${packages[@]}"
+          if [[ "$NELVIS_VARIANT" == full ]]; then
+            /usr/bin/python3 -c 'import gi; gi.require_version("Gimp", "3.0"); from gi.repository import Gimp'
+          fi
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -107,9 +112,8 @@ jobs:
         run: bash motion/produce.sh "$BRIEF" "$FORMAT" "$NELVIS_VARIANT"
       - name: Publier les vidéos et projets
         uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
         with:
           name: motion-design-nelvis
           path: motion/output/
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14

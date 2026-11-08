@@ -26,9 +26,9 @@ fi
 if [[ "$variant" == full ]]; then
   python artwork.py
   NELVIS_ASSETS="$PWD/assets" NELVIS_GIMP_SCRIPT="$PWD/gimp_project.py" \
-    gimp-console -n -idf --batch-interpreter=python-fu-eval \
+    env PATH=/usr/bin:/bin xvfb-run -a gimp-console -n -idf --batch-interpreter=python-fu-eval \
     -b 'import os; exec(open(os.environ["NELVIS_GIMP_SCRIPT"]).read())' --quit
-  xvfb-run -a krita assets/VOLT.ora --export --export-filename "$PWD/assets/VOLT-krita.png"
+  xvfb-run -a dbus-run-session -- krita assets/VOLT.ora --export --export-filename "$PWD/assets/VOLT-krita.png"
   test -s assets/VOLT_artwork.xcf
   test -s assets/VOLT-krita.png
   if [[ -n "${NELVIS_NATRON:-}" ]]; then
