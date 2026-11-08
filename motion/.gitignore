@@ -1,0 +1,8 @@
+/assets/
+/output/
+/montage/*.mp4
+/montage/*.mlt
+/montage/*.otio
+/remotion/node_modules/
+/remotion/titre.mp4
+__pycache__/

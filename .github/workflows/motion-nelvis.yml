@@ -1,0 +1,114 @@
+name: MOTION DESIGN NELVIS — rendu vidéo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'motion/**'
+      - '.github/workflows/motion-nelvis.yml'
+  workflow_dispatch:
+    inputs:
+      brief:
+        description: 'Brief JSON dans motion/'
+        default: 'examples/volt.json'
+        type: string
+      format:
+        description: Format vidéo
+        type: choice
+        default: both
+        options: [both, '9:16', '16:9']
+      variant:
+        description: 'full = chaîne complète, core = rendu de base'
+        type: choice
+        default: full
+        options: [full, core]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: motion-nelvis-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-24.04
+    container: debian:trixie
+    timeout-minutes: 35
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      NELVIS_VARIANT: ${{ inputs.variant || 'full' }}
+      OMP_NUM_THREADS: '4'
+      MKL_NUM_THREADS: '4'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Installer les moteurs
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update
+          packages=(git curl ca-certificates xz-utils python3 python3-venv blender inkscape melt ffmpeg
+                    fonts-liberation xvfb xauth libgl1-mesa-dri libopengl0 libxcb-cursor0)
+          if [[ "$NELVIS_VARIANT" == full ]]; then
+            packages+=(gimp krita espeak-ng libnss3 libatk1.0-0t64 libatk-bridge2.0-0t64
+                       libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2t64)
+          fi
+          apt-get install -y --no-install-recommends "${packages[@]}"
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        if: env.NELVIS_VARIANT == 'full'
+        with:
+          node-version: '22'
+      - name: Installer les dépendances Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/motion-venv"
+          source "$RUNNER_TEMP/motion-venv/bin/activate"
+          pip install -r motion/requirements.txt 'opentimelineio==0.18.1'
+          if [[ "$NELVIS_VARIANT" == full ]]; then
+            pip install --index-url https://download.pytorch.org/whl/cpu 'torch==2.6.0'
+            pip install 'openai-whisper==20250625'
+          fi
+          echo "$RUNNER_TEMP/motion-venv/bin" >> "$GITHUB_PATH"
+      - name: Installer Natron, Subtitle Edit et Remotion
+        if: env.NELVIS_VARIANT == 'full'
+        shell: bash
+        run: |
+          set -euo pipefail
+          tools="$RUNNER_TEMP/motion-tools"
+          mkdir -p "$tools"/{natron,seconv}
+          curl -fLsS --retry 3 --retry-all-errors \
+            https://github.com/NatronGitHub/Natron/releases/download/v2.5.0/Natron-2.5.0-Linux-x86_64-no-installer.tar.xz \
+            -o "$tools/natron.tar.xz"
+          tar -xJf "$tools/natron.tar.xz" -C "$tools/natron"
+          natron=$(find "$tools/natron" -maxdepth 3 -type f -name NatronRenderer -not -path '*/bin/*' -print -quit)
+          test -x "$natron"
+          echo "NELVIS_NATRON=$natron" >> "$GITHUB_ENV"
+          if curl -fLsS --retry 2 --retry-all-errors --max-time 90 \
+            https://github.com/SubtitleEdit/subtitleedit/releases/download/v5.4.0/SeConv-Linux-x64.tar.gz \
+            -o "$tools/seconv.tar.gz"; then
+            tar -xzf "$tools/seconv.tar.gz" -C "$tools/seconv"
+            seconv=$(find "$tools/seconv" -type f -iname seconv -print -quit)
+            test -x "$seconv"
+            echo "NELVIS_SECONV=$seconv" >> "$GITHUB_ENV"
+          else
+            echo "::warning::Archive Subtitle Edit indisponible. Les SRT et ASS restent disponibles."
+          fi
+          npm --prefix motion/remotion ci --no-audit --no-fund
+      - name: Générer les vidéos et vérifier les exports
+        shell: bash
+        env:
+          BRIEF: ${{ inputs.brief || 'examples/volt.json' }}
+          FORMAT: ${{ inputs.format || 'both' }}
+        run: bash motion/produce.sh "$BRIEF" "$FORMAT" "$NELVIS_VARIANT"
+      - name: Publier les vidéos et projets
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: motion-design-nelvis
+          path: motion/output/
+          if-no-files-found: warn
+          retention-days: 14

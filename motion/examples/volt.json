@@ -1,0 +1,11 @@
+{
+  "brand": "VOLT",
+  "model": "RIFT 01",
+  "hook": ["PRENDS", "L’ÉLAN."],
+  "detail": ["MAILLE", "TEXTURÉE."],
+  "tagline": "À TOI LA RUE.",
+  "accent": "#dcfa4c",
+  "format": "9:16",
+  "images": ["../assets/hero.png", "../assets/detail.png", "../assets/final.png"],
+  "demo_orbit": true
+}
